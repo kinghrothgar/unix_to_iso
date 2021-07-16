@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+import sys
+from datetime import datetime
+
+parser = argparse.ArgumentParser(
+        description='process unix timestamps to iso8601 in stdin')
+parser.add_argument('-i', '--insert', action="store_true",
+        help='insert iso8601 after unix timestamp instead of replace')
+
+args = parser.parse_args()
+
+for line in sys.stdin:
+    unixs = re.findall("(?:^|[\-\s_\.])(1[0-9]{9})(?:[\-\s_\.]|$)", line)
+    if not unixs:
+        print(line, end='')
+        continue
+    replaces = []
+    new_string = line
+    for u in unixs:
+        repl_string = datetime.fromtimestamp(int(u)).isoformat()
+        if args.insert:
+            repl_string = "{} ({})".format(str(u), repl_string)
+        new_string = new_string.replace(
+                str(u),
+                repl_string)
+    print(new_string, end='')
